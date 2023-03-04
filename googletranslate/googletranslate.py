@@ -103,10 +103,12 @@ class GoogleTranslate(object):
         self.result = match.sub(r'<gray>\1</gray>\2<gray>\3</gray>\4', self.result)
         self.result = f'<html>\n<head>\n{css_text}\n</head>\n<body>\n<p>{self.result}</p>\n</body>\n</html>'
 
-    async def get_translation(self, target_language, query_string, tkk=''):
+    async def get_translation(self, target_language, query_string, tkk='', pdf=False):
         self.result = ''
         self.target_language = target_language
         self.query_string = query_string
+        if pdf:
+            self.query_string = self.query_string.replace("\n", " ")
         tk = Token(tkk).calculate_token(self.query_string)
         if len(self.query_string) > 5000:
             return '(╯‵□′)╯︵┻━┻: Maximum characters exceeded...'
@@ -160,13 +162,15 @@ def get_args():
     parser.add_argument('-m', dest='synonyms', action='store_true', help='show synonyms')
     parser.add_argument('-d', dest='definitions', action='store_true', help='show definitions')
     parser.add_argument('-e', dest='examples', action='store_true', help='show examples')
+    parser.add_argument('--pdf', action='store_true', help="remove all \\n when translate PDF string")
+    parser.set_defaults(pdf=False)
     return parser.parse_args()
 
 
 def main(args=None):
     args = args if args else get_args()
     g_trans = GoogleTranslate(args)
-    trans = asyncio.run(g_trans.get_translation(args.target, args.query, tkk=args.tkk))
+    trans = asyncio.run(g_trans.get_translation(args.target, args.query, tkk=args.tkk, pdf=args.pdf))
     return trans
 
 
